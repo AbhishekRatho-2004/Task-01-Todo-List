@@ -20,6 +20,7 @@ export default function TodoApp() {
   const [notes, setNotes] = useState<Note[]>([]);
   const [newNote, setNewNote] = useState("");
   const [filter, setFilter] = useState("all");
+  const [searchTerm, setSearchTerm] = useState("");  // Search state
   const [darkMode, setDarkMode] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
 
@@ -85,10 +86,10 @@ export default function TodoApp() {
   };
 
   const filteredNotes = notes.filter((note) => {
-    if (filter === "all") return true;
-    if (filter === "completed") return note.completed;
-    if (filter === "pending") return !note.completed;
-    return true;
+    return (
+      (filter === "all" || (filter === "completed" && note.completed) || (filter === "pending" && !note.completed)) &&
+      note.title.toLowerCase().includes(searchTerm.toLowerCase())  // Search filter
+    );
   });
 
   return (
@@ -104,12 +105,16 @@ export default function TodoApp() {
             <Typography variant="h5" gutterBottom>TODO LIST</Typography>
 
             <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "10px" }}>
+              {/* Search Input */}
               <TextField
                 label="Search note..."
                 variant="outlined"
                 size="small"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
                 style={{ flexGrow: 1, marginRight: "10px" }}
               />
+
               <FormControl variant="outlined" size="small" style={{ minWidth: 120 }}>
                 <InputLabel>Filter</InputLabel>
                 <Select value={filter} onChange={(e) => setFilter(e.target.value)}>
@@ -127,7 +132,7 @@ export default function TodoApp() {
               {filteredNotes.map((note) => (
                 <ListItem key={note._id} divider>
                   <Checkbox checked={note.completed} onChange={() => toggleComplete(note._id, note.completed)} />
-                  <ListItemText primary={note.title} style={{ textDecoration: note.completed ? "line-through" : "none" ,color:"black"}} />
+                  <ListItemText primary={note.title} style={{ textDecoration: note.completed ? "line-through" : "none"}} />
                   <ListItemSecondaryAction>
                     <IconButton onClick={() => editNote(note)}><Edit color="primary" /></IconButton>
                     <IconButton onClick={() => deleteNote(note._id)}><Delete color="error" /></IconButton>
